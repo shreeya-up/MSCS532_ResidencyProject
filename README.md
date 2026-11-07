@@ -50,3 +50,13 @@ Important: This is a proposed Phase 2 implementation, **not an original Phase 1 
 ## Browser interface (local-only demo)
 
 Run `py web_app.py` from this folder, then visit **http://127.0.0.1:8000** in Chrome or Edge. This browser UI uses the exact same Python `StrengthTracker` and AVL tree as the CLI. No pip installation is required. The browser form adds one set at a time, while the backend supports multi-set workouts. User IDs and exercises are preloaded. All data is memory-only and resets when restarting the server. Press Ctrl+C in the terminal to stop the server.
+## Phase 2 — Team Members
+
+1. Bharath Origanti
+2. Harika Rajisetty
+3. Amar Kulkarni
+4. Chandra Kiran Billingi
+5. Fahad Jafar Mohammed
+
+**Course: MSCS 532 — Algorithms and Data Structures
+Phase: 2 — Implementation**
