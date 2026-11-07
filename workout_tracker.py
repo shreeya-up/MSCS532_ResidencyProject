@@ -8,7 +8,9 @@ Indexes per user:
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import math
+from multiprocessing import heap
 from typing import Any
+import heapq
 
 from avl_tree import AVLTree
 
@@ -46,7 +48,8 @@ class _UserData:
         self.workouts: dict[str, Workout] = {}
         self.by_date = AVLTree()
         self.pr_by_exercise: dict[str, PersonalRecord] = {}
-
+        self.lift_heap: dict[str, list] = {}   # exercise_id -> min-heap
+        self.log_seq = 0
 
 class StrengthTracker:
     """In-memory prototype, no persistence, authentication, edit/delete, or concurrency."""
@@ -127,6 +130,12 @@ class StrengthTracker:
         # fail within normal single-process execution after validation.
         user.by_date.insert((utc_time, workout_id), workout)
         user.workouts[workout_id] = workout
+        seq = user.log_seq
+        user.log_seq += 1
+        heap = user.lift_heap.setdefault(exercise_id, [])
+        for i, entry in enumerate(validated_sets):
+            record = PersonalRecord(workout_id, i, entry.weight_kg, entry.repetitions, utc_time)
+            heapq.heappush(heap, (-entry.weight_kg, seq, i, record))
         old_pr = user.pr_by_exercise.get(exercise_id)
         for i, entry in enumerate(validated_sets):
             if old_pr is None or entry.weight_kg > old_pr.weight_kg:
@@ -169,3 +178,22 @@ class StrengthTracker:
             assert len(all_workouts) == len(user.workouts)
             assert {w.workout_id for w in all_workouts} == set(user.workouts)
         return True
+
+    def top_k_lifts(self, user_id, exercise_id, k):
+        user = self._user(user_id)
+        if exercise_id not in self.exercises:
+            raise ValueError(f'Unknown exercise: {exercise_id}')
+        if isinstance(k, bool) or not isinstance(k, int) or k < 0:
+            raise ValueError('k must be a non-negative integer')
+        heap = user.lift_heap.get(exercise_id, [])
+        result = []
+        if k == 0 or not heap:
+            return result
+        frontier = [(heap[0], 0)]                  # (entry, index in main heap)
+        while frontier and len(result) < k:
+            entry, i = heapq.heappop(frontier)
+            result.append(entry[3].as_tuple())     # same tuple shape as get_personal_record
+            for c in (2 * i + 1, 2 * i + 2):
+                if c < len(heap):
+                    heapq.heappush(frontier, (heap[c], c))
+        return result
