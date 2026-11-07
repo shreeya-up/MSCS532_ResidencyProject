@@ -50,6 +50,12 @@ def handle_action(action, data):
                     datetime.min.replace(tzinfo=__import__('datetime').timezone.utc),
                     datetime.max.replace(tzinfo=__import__('datetime').timezone.utc))],
                 'indexes_valid': tracker.validate_indexes()}
+    if action == 'topk':
+        lifts = tracker.top_k_lifts(data['user_id'], data['exercise_id'], int(data['k']))
+        return {'lifts': [{'rank': rank, 'workout_id': r[0], 'set_index': r[1],
+                        'weight_kg': r[2], 'repetitions': r[3],
+                        'timestamp': r[4].isoformat()}
+                        for rank, r in enumerate(lifts, start=1)]}
     raise ValueError('Unknown action')
 
 
