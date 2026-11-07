@@ -67,6 +67,15 @@ def main():
                 print('U101 BENCH PR (first logged tie retained):', tracker.get_personal_record('U101', 'BENCH'))
                 print('U102 isolated from U101:', tracker.get_workout('U102', 'W001'))
                 print('Indexes valid:', tracker.validate_indexes())
+            elif choice == '6':
+                user = input('User ID: ').strip()
+                exercise = input('Exercise ID: ').strip()
+                k = int(input('How many (k): '))
+                lifts = tracker.top_k_lifts(user, exercise, k)
+                if not lifts:
+                    print('No lifts logged yet')
+                for rank, (wid, idx, kg, reps, ts) in enumerate(lifts, start=1):
+                    print(f'  #{rank}: {kg:g} kg x {reps} reps | {wid} set {idx} | UTC {ts.isoformat()}')
             elif choice == '0':
                 print('Goodbye')
                 break
