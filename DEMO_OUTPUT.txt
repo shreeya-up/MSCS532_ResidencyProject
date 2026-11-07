@@ -1,0 +1,19 @@
+Strength Training and Performance Tracking System
+Preloaded users: U101, U102
+Exercises: BENCH, SQUAT, DEADLIFT
+
+1 Add workout | 2 Get workout | 3 Date range | 4 Personal record | 5 Demo | 0 Exit
+Choose: Demonstrating chronological order even with backdated entries:
+User=U101 | Workout=W003 | Exercise=BENCH | UTC=2026-11-03T10:00:00+00:00
+  Set 0: 60 kg x 5 reps
+User=U101 | Workout=W001 | Exercise=BENCH | UTC=2026-11-04T15:00:00+00:00
+  Set 0: 50 kg x 10 reps
+  Set 1: 60 kg x 8 reps
+User=U101 | Workout=W002 | Exercise=BENCH | UTC=2026-11-06T10:00:00+00:00
+  Set 0: 60 kg x 6 reps
+U101 BENCH PR (first logged tie retained): ('W001', 1, 60.0, 8, datetime.datetime(2026, 11, 4, 15, 0, tzinfo=datetime.timezone.utc))
+U102 isolated from U101: Workout(user_id='U102', workout_id='W001', exercise_id='SQUAT', timestamp=datetime.datetime(2026, 11, 5, 12, 0, tzinfo=datetime.timezone.utc), sets=(SetEntry(weight_kg=80.0, repetitions=5),))
+Indexes valid: True
+
+1 Add workout | 2 Get workout | 3 Date range | 4 Personal record | 5 Demo | 0 Exit
+Choose: Goodbye
