@@ -58,7 +58,6 @@ def handle_action(action, data):
                         for rank, r in enumerate(lifts, start=1)]}
     raise ValueError('Unknown action')
 
-
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if urlsplit(self.path).path != '/':
