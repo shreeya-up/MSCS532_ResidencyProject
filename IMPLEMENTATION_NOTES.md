@@ -39,6 +39,3 @@ Run `python -m unittest -v`. Coverage includes:
 4. Verify the instructor's curveball requirements and apply optimizations without breaking tests.
 5. Record before/after measurements, remaining limitations and decisions in Phase 3 notes.
 
-## AI-use note
-
-This starter implementation was drafted with ChatGPT assistance from the user-supplied Phase 1 design brief and GitHub consultation screenshots. The Phase 2 group should verify decisions and add an accurate AI usage appendix describing their actual prompts, corrections, testing, and modifications before graded submission.
