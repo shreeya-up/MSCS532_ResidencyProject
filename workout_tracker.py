@@ -8,20 +8,21 @@ Indexes per user:
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import math
-from multiprocessing import heap
 from typing import Any
 import heapq
+
+_INF = math.inf
 
 from avl_tree import AVLTree
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class SetEntry:
     weight_kg: float
     repetitions: int
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Workout:
     user_id: str
     workout_id: str
@@ -30,7 +31,7 @@ class Workout:
     sets: tuple[SetEntry, ...]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PersonalRecord:
     workout_id: str
     set_index: int
@@ -85,12 +86,35 @@ class StrengthTracker:
             raise ValueError('Invalid timestamp') from exc
 
     @staticmethod
-    def _sets(raw_sets):
+    def _check_set_slow(index, weight, reps):
+        """Original (general) checks, used only for unusual input types."""
+        if (isinstance(weight, bool) or not isinstance(weight, (int, float))
+                or not math.isfinite(weight) or weight <= 0):
+            raise ValueError(f'Weight at set {index} must be finite and > 0')
+        if isinstance(reps, bool) or not isinstance(reps, int) or reps <= 0:
+            raise ValueError(f'Repetitions at set {index} must be a positive integer')
+        return float(weight), reps
+
+    @classmethod
+    def _sets(cls, raw_sets):
+        """Validate sets; return a tuple of SetEntry. O(s).
+
+        Phase 3: fast path for the common input (a tuple/list pair with a plain
+        float/int weight and a plain int rep count): exact type checks and one
+        chained comparison instead of ~8 isinstance/isfinite calls per set.
+        Anything else goes through the original checks, so accepted and
+        rejected inputs are exactly the same as before.
+        """
         if not isinstance(raw_sets, (list, tuple)) or not raw_sets:
             raise ValueError('At least one set is required')
         output = []
         for index, item in enumerate(raw_sets):
-            if isinstance(item, SetEntry):
+            item_type = type(item)
+            if item_type is tuple or item_type is list:
+                if len(item) != 2:
+                    raise ValueError(f'Invalid set at index {index}')
+                weight, reps = item
+            elif item_type is SetEntry:
                 weight, reps = item.weight_kg, item.repetitions
             elif isinstance(item, dict):
                 try:
@@ -102,12 +126,16 @@ class StrengthTracker:
                 weight, reps = item
             else:
                 raise ValueError(f'Invalid set at index {index}')
-            if (isinstance(weight, bool) or not isinstance(weight, (int, float))
-                    or not math.isfinite(weight) or weight <= 0):
-                raise ValueError(f'Weight at set {index} must be finite and > 0')
-            if isinstance(reps, bool) or not isinstance(reps, int) or reps <= 0:
-                raise ValueError(f'Repetitions at set {index} must be a positive integer')
-            output.append(SetEntry(float(weight), reps))
+            weight_type = type(weight)
+            if (weight_type is float or weight_type is int) and type(reps) is int:
+                # 0 < w < inf is False for 0, negatives, inf and NaN.
+                if not 0 < weight < _INF:
+                    raise ValueError(f'Weight at set {index} must be finite and > 0')
+                if reps <= 0:
+                    raise ValueError(f'Repetitions at set {index} must be a positive integer')
+                output.append(SetEntry(float(weight), reps))
+            else:
+                output.append(SetEntry(*cls._check_set_slow(index, weight, reps)))
         return tuple(output)
 
     def add_workout(self, user_id, workout_id, exercise_id, timestamp, sets):
@@ -133,17 +161,24 @@ class StrengthTracker:
         seq = user.log_seq
         user.log_seq += 1
         heap = user.lift_heap.setdefault(exercise_id, [])
-        for i, entry in enumerate(validated_sets):
-            record = PersonalRecord(workout_id, i, entry.weight_kg, entry.repetitions, utc_time)
-            heapq.heappush(heap, (-entry.weight_kg, seq, i, record))
+        push = heapq.heappush
+        # Phase 3: one pass over the sets does both jobs. The heap stores a plain
+        # tuple (already in get_personal_record's shape) instead of building a
+        # PersonalRecord object per set, and the PR is built once, at the end.
         old_pr = user.pr_by_exercise.get(exercise_id)
+        best_weight = old_pr.weight_kg if old_pr is not None else -1.0
+        best_index = -1
         for i, entry in enumerate(validated_sets):
-            if old_pr is None or entry.weight_kg > old_pr.weight_kg:
-                old_pr = PersonalRecord(workout_id, i, entry.weight_kg,
-                                        entry.repetitions, utc_time)
-        # Strictly greater only, so an equal-weight PR keeps first logged set.
-        if old_pr is not None:
-            user.pr_by_exercise[exercise_id] = old_pr
+            weight = entry.weight_kg
+            push(heap, (-weight, seq, i,
+                        (workout_id, i, weight, entry.repetitions, utc_time)))
+            # Strictly greater only, so an equal-weight PR keeps first logged set.
+            if weight > best_weight:
+                best_weight, best_index = weight, i
+        if best_index >= 0:
+            user.pr_by_exercise[exercise_id] = PersonalRecord(
+                workout_id, best_index, best_weight,
+                validated_sets[best_index].repetitions, utc_time)
         return workout
 
     def get_workout(self, user_id, workout_id):
@@ -192,7 +227,7 @@ class StrengthTracker:
         frontier = [(heap[0], 0)]                  # (entry, index in main heap)
         while frontier and len(result) < k:
             entry, i = heapq.heappop(frontier)
-            result.append(entry[3].as_tuple())     # same tuple shape as get_personal_record
+            result.append(entry[3])                # stored in get_personal_record's tuple shape
             for c in (2 * i + 1, 2 * i + 2):
                 if c < len(heap):
                     heapq.heappush(frontier, (heap[c], c))

@@ -1,0 +1,53 @@
+=== Top 20 by cumulative time (which operations are slow) ===
+         1968687 function calls (1803686 primitive calls) in 0.620 seconds
+
+   Ordered by: cumulative time
+   List reduced from 42 to 20 due to restriction <20>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.009    0.009    0.643    0.643 cprofiler.py:40(workload)
+    10000    0.045    0.000    0.468    0.000 workout_tracker.py:113(add_workout)
+    10000    0.005    0.000    0.289    0.000 avl_tree.py:76(insert)
+120554/10000    0.133    0.000    0.284    0.000 avl_tree.py:54(_insert)
+     5000    0.078    0.000    0.125    0.000 workout_tracker.py:182(top_k_lifts)
+   124402    0.057    0.000    0.094    0.000 avl_tree.py:26(_fix_height)
+    10000    0.050    0.000    0.077    0.000 workout_tracker.py:87(_sets)
+   110554    0.034    0.000    0.049    0.000 avl_tree.py:30(_balance)
+   469912    0.037    0.000    0.037    0.000 avl_tree.py:22(_height)
+      500    0.001    0.000    0.033    0.000 workout_tracker.py:153(search_dates)
+      500    0.001    0.000    0.031    0.000 avl_tree.py:80(range_search)
+54947/500    0.029    0.000    0.030    0.000 avl_tree.py:84(walk)
+   125111    0.022    0.000    0.022    0.000 {built-in method _heapq.heappush}
+    11000    0.012    0.000    0.022    0.000 workout_tracker.py:72(_utc)
+    25136    0.018    0.000    0.018    0.000 <string>:2(__init__)
+   124402    0.015    0.000    0.015    0.000 {built-in method builtins.max}
+   227782    0.013    0.000    0.013    0.000 {built-in method builtins.isinstance}
+    50000    0.011    0.000    0.011    0.000 {built-in method _heapq.heappop}
+    55000    0.009    0.000    0.009    0.000 workout_tracker.py:41(as_tuple)
+   180111    0.008    0.000    0.008    0.000 {built-in method builtins.len}
+
+
+=== Top 15 by own time (where the CPU actually goes) ===
+         1968687 function calls (1803686 primitive calls) in 0.620 seconds
+
+   Ordered by: internal time
+   List reduced from 42 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+120554/10000    0.133    0.000    0.284    0.000 avl_tree.py:54(_insert)
+     5000    0.078    0.000    0.125    0.000 workout_tracker.py:182(top_k_lifts)
+   124402    0.057    0.000    0.094    0.000 avl_tree.py:26(_fix_height)
+    10000    0.050    0.000    0.077    0.000 workout_tracker.py:87(_sets)
+    10000    0.045    0.000    0.468    0.000 workout_tracker.py:113(add_workout)
+   469912    0.037    0.000    0.037    0.000 avl_tree.py:22(_height)
+   110554    0.034    0.000    0.049    0.000 avl_tree.py:30(_balance)
+54947/500    0.029    0.000    0.030    0.000 avl_tree.py:84(walk)
+   125111    0.022    0.000    0.022    0.000 {built-in method _heapq.heappush}
+    25136    0.018    0.000    0.018    0.000 <string>:2(__init__)
+   124402    0.015    0.000    0.015    0.000 {built-in method builtins.max}
+   227782    0.013    0.000    0.013    0.000 {built-in method builtins.isinstance}
+    11000    0.012    0.000    0.022    0.000 workout_tracker.py:72(_utc)
+    50000    0.011    0.000    0.011    0.000 {built-in method _heapq.heappop}
+    55000    0.009    0.000    0.009    0.000 workout_tracker.py:41(as_tuple)
+
+
